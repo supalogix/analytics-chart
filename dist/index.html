@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<div id="container"></div>
+<script src="bundle.js"></script>
+<script>
+
+	var chart = new d3Chart();
+
+	var el = document.getElementById("container");
+
+	var props = {
+		width: window.innerWidth - 50,
+		height: window.innerHeight,
+	};
+
+	var data = getData();
+
+	chart.create( el , props, data );
+
+//	setTimeout( update, 1000 );
+
+	window.onresize = function(e) {
+		var props = {
+			width: window.innerWidth - 50,
+			height: window.innerHeight,
+		};
+
+		chart.resize( el, props, data );
+	}
+
+	function update() {
+		var props = {
+			width: window.innerWidth - 50,
+			height: window.innerHeight,
+			enableTransition: true,
+			duration: 1000
+		};
+
+		data = getData2();
+		chart.update( el, props, data );
+	}
+
+	function getData() {
+		return [
+			{ "label": "Item A",	"value": 492 },
+	 		{ "label": "Item B",	"value": 167 },
+			{ "label": "Item C",	"value": 999 },
+			{ "label": "Item D",	"value": 253 },
+			{ "label": "Item E",	"value": 500 },
+			{ "label": "Item F",	"value": 2000 },
+			{ "label": "Item G",	"value": 1000 },
+		];
+	}
+
+	function getData2() {
+		return [
+			{ "label": "Item A",	"value": 400 },
+	 		{ "label": "Item B",	"value": 167 },
+			{ "label": "Item C",	"value": 999 },
+			{ "label": "Item D",	"value": 3000 },
+			{ "label": "Item E",	"value": 500 },
+			{ "label": "Item F",	"value": 2000 },
+			{ "label": "Item T",	"value": 1000 },
+			{ "label": "Item U",	"value": 2000 },
+		];
+	}
+	
+	var data1 = getData();
+	var data2 = getData2();
+
+	var actions = chart.actionsFactory.getActions( data1, data2 );
+	console.log(actions);
+	var dataFactory = chart.dataFactory;
+	var datums = getDatums( data1, actions );
+	console.log(datums);
+	redraw(chart, datums);
+
+	function redraw(chart, datums) {
+		if( datums.length === 0 )
+			return;
+
+		setTimeout(function() {
+			var new_chart = datums[0];
+			var tail = datums.slice(1);
+
+			var props = {
+				width: window.innerWidth - 50,
+				height: window.innerHeight,
+				enableTransition: true,
+				duration: 300
+			};
+
+			chart.update(el, props, new_chart);
+			redraw(chart, tail);
+		},1000);
+	}
+
+	function getDatums(data, actions) {
+		return __recur([], data, actions);
+
+		function __recur(collection, oldData, actions) {
+			if(actions.length === 0 )
+				return collection;
+
+			var head = actions[0];
+			var tail = actions.slice(1);
+
+			var newData = dataFactory.getData(oldData, head);
+
+			return __recur(
+				collection.concat([newData]),
+				newData,
+				tail);
+		}
+	}
+
+</script>
